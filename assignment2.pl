@@ -1,13 +1,22 @@
-correspond(E1, [Head1|Tail1], E2, [Head2|Tail2]):-
-correspond(E1, Tail1, E2, Tail2);
-E1=Head1,E2=Head2.
+
+find_the_position(X,[X|_],1).
+find_the_position(X,[_|List1],Z):-find_the_position(X,List1,F),Z is (F+1).
+
+find_the_word(X,[X|_],1).
+find_the_word(X,[_|L],T) :-find_the_word(X,L,T1), T is T1 + 1.
+
+
+correspond(X,[X|_],Y,[Y|_]).
+correspond(X,[Y|List1],Z,[T|List2]):-find_the_position(X,[Y|List1],N),find_the_word(Z,[T|List2],N).
+
+
 
 interleave1([],[]).
 
 interleave1([[A|B]],[A|B]).
 
 interleave1([[A|B],C|D], [A|F]):-
-	sameelements([[A|B],C|D], [A|F]),
+	same_elements([[A|B],C|D], [A|F]),
 	(
 		B\=[]->
 		append([C|D],[B],List),
@@ -17,43 +26,41 @@ interleave1([[A|B],C|D], [A|F]):-
 	).
 interleave(A, B):-
 	
-	interleave1(A,B),samelength1(A).
+	interleave1(A,B),same_length1(A).
 
-samelength1([]).
-samelength1([_A]).
-samelength1([[A|B],C|D]):-
-	samelength([A|B],C),
-	samelength1([C|D]).
+same_length1([]).
+same_length1([_A]).
+same_length1([[A|B],C|D]):-
+	same_length([A|B],C),
+	same_length1([C|D]).
 
-samelength([], []). 
-samelength([_|Xs], [_|Ys]) :-
-samelength(Xs, Ys).
+same_length([], []). 
+same_length([_|Xs], [_|Ys]) :-
+same_length(Xs, Ys).
 
-countnumber([],0).
-	countnumber([A|B],N):-
-	length(A,M),
-	countnumber(B,O),
-	N is O+M.
+same_elements([],[]).
+same_elements([[]|Tail],L):-
+	same_elements(Tail,L).
+same_elements([[_A|B]|Tail], [_E|F]):-
+	same_elements([B|Tail],F).
 
-sameelements([],[]).
-sameelements([[]|Tail],L):-
-	sameelements(Tail,L).
-sameelements([[_A|B]|Tail], [_E|F]):-
-	sameelements([B|Tail],F).
-	
-checkvarval(Var,Val):-
+
+
+
+
+check(Var,Val):-
 atom(Var),
 number(Val).
 
 partial_eval(Expr0, Var, Val, Expr):-
 number(Expr0),
-checkvarval(Var,Val),
+check(Var,Val),
 Expr = Expr0.
 
 
 partial_eval(Expr0, Var, Val, Expr):-
 atom(Expr0),
-checkvarval(Var,Val),
+check(Var,Val),
 (Expr0=Var->
 	Val=Expr
 	;
@@ -61,50 +68,49 @@ checkvarval(Var,Val),
 ).
 
 partial_eval(Expr0+Expr1, Var, Val, Expr2):-
-	partial_eval(Expr0,Var, Val, NewExpr0),
-	partial_eval(Expr1,Var, Val, NewExpr1),
-	checkvarval(Var,Val),
-	(number(NewExpr0),number(NewExpr1)->
-		Expr2 is NewExpr0+NewExpr1
+	partial_eval(Expr0,Var, Val, Expr3),
+	partial_eval(Expr1,Var, Val, Expr4),
+	check(Var,Val),
+	(number(Expr3),number(Expr4)->
+		Expr2 is Expr3+Expr4
 		;
-		Expr2=NewExpr0+NewExpr1
+		Expr2=Expr3+Expr4
 		).
 
 
 partial_eval(Expr0-Expr1, Var, Val, Expr2):-
-	partial_eval(Expr0,Var, Val, NewExpr0),
-	partial_eval(Expr1,Var, Val, NewExpr1),
-	checkvarval(Var,Val),
-	(number(NewExpr0),number(NewExpr1)->
-		Expr2 is NewExpr0-NewExpr1
+	partial_eval(Expr0,Var, Val, Expr3),
+	partial_eval(Expr1,Var, Val, Expr4),
+	check(Var,Val),
+	(number(Expr3),number(Expr4)->
+		Expr2 is Expr3-Expr4
 		;
-		Expr2=NewExpr0-NewExpr1
+		Expr2=Expr3-Expr4
 		).
 partial_eval(Expr0*Expr1, Var, Val, Expr2):-
-	partial_eval(Expr0,Var, Val, NewExpr0),
-	partial_eval(Expr1,Var, Val, NewExpr1),
-	checkvarval(Var,Val),
-	(number(NewExpr0),number(NewExpr1)->
-		Expr2 is NewExpr0*NewExpr1
+	partial_eval(Expr0,Var, Val, Expr3),
+	partial_eval(Expr1,Var, Val, Expr4),
+	check(Var,Val),
+	(number(Expr3),number(Expr4)->
+		Expr2 is Expr3*Expr4
 		;
-		Expr2=NewExpr0*NewExpr1
+		Expr2=Expr3*Expr4
 		).
 partial_eval(Expr0/Expr1, Var, Val, Expr2):-
-	partial_eval(Expr0,Var, Val, NewExpr0),
-	partial_eval(Expr1,Var, Val, NewExpr1),
-	checkvarval(Var,Val),
-	(number(NewExpr0),number(NewExpr1)->
-		Expr2 is NewExpr0/NewExpr1
+	partial_eval(Expr0,Var, Val, Expr3),
+	partial_eval(Expr1,Var, Val, Expr4),
+	check(Var,Val),
+	(number(Expr3),number(Expr4)->
+		Expr2 is Expr3E/xpr4
 		;
-		Expr2=NewExpr0/NewExpr1
+		Expr2=Expr3/Expr4
 		).
 partial_eval(Expr0//Expr1, Var, Val, Expr2):-
-	partial_eval(Expr0,Var, Val, NewExpr0),
-	partial_eval(Expr1,Var, Val, NewExpr1),
-	checkvarval(Var,Val),
-	(number(NewExpr0),number(NewExpr1)->
-		Expr2 is NewExpr0//NewExpr1
+	partial_eval(Expr0,Var, Val, Expr3),
+	partial_eval(Expr1,Var, Val, Expr4),
+	check(Var,Val),
+	(number(Expr3),number(Expr4)->
+		Expr2 is Expr3//Expr4
 		;
-		Expr2=NewExpr0//NewExpr1
+		Expr2=Expr3//Expr4
 		).
-
